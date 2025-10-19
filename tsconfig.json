@@ -1,0 +1,45 @@
+{
+  "exclude": ["node_modules", "build", "dist", "coverage"],
+  "include": ["src/**/*", "*.[m]js"],
+  "files": [
+    "node_modules/jest-extended/types/index.d.ts",
+    "node_modules/@testing-library/jest-dom/types/index.d.ts"
+  ],
+  "compilerOptions": {
+    "jsx": "react",
+    "strict": true,
+    "outDir": "./build",
+    "baseUrl": "./src",
+    "noImplicitAny": true,
+    "module": "ESNEXT",
+    "target": "ESNEXT",
+    "removeComments": true,
+    "allowJs": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
+    "types": ["@types/wicg-file-system-access", "@types/chrome"],
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "#domain/*": ["./domain/*"],
+      "#helpers/*": ["./helpers/*"],
+      "#enums/*": ["./enums/*"],
+      "#schema": ["types/schema.d.ts"],
+      "#libs/*": ["./libs/*"],
+      "#infra/*": ["./infra/*"],
+      "#utils/*": ["./utils/*"],
+      "#eventHandlers/*": ["./eventHandlers/*"],
+      "#eventHandlers": ["./eventHandlers"],
+      "#mocks/*": ["./mocks/*"],
+      "#pages/*": ["./pages/*"],
+      "#assets/*": ["./assets/*"],
+      "#provider": ["./provider"],
+      "#monitor": ["./monitors/sentry.ts"],
+      "#mappers/*": ["./mappers/*"]
+    }
+  }
+}

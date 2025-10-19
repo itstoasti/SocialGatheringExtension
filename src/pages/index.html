@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="assets/icons/icon@128.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Homenaje&family=Noto+Sans+JP:wght@300;500&family=Noto+Sans+TC:wght@300;500&display=swap"
+      rel="stylesheet"
+    />
+    <title>Social Gathering</title>
+    <style>
+      /* Hidden scrollbar for all scrollable containers */
+      .scrollable-hidden {
+        overflow-y: auto !important;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* Internet Explorer 10+ */
+      }
+      .scrollable-hidden::-webkit-scrollbar {
+        width: 0px;
+        background: transparent; /* Chrome/Safari/Webkit */
+      }
+    </style>
+    <script>
+      // Apply popup dimensions only when tab=popup
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'popup') {
+        document.write(`
+          <style>
+            html, body {
+              width: 320px !important;
+              height: 380px !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+            }
+            #root {
+              width: 100% !important;
+              height: 100% !important;
+            }
+          </style>
+        `);
+      }
+    </script>
+  </head>
+
+  <body id="app-body">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script src="./pages.js"></script>
+  </body>
+</html>

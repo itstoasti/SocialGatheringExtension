@@ -1,0 +1,53 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Run test
+
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+      - main
+
+env:
+  HUSKY: 0
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    environment: 'test'
+    strategy:
+      matrix:
+        node-version: [22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Set yarn version
+        run: |
+          yarn set version 4.9.1
+
+      - name: Prepare env file
+        run: |
+          cp sample.env .env
+
+      - name: Install deps and Run test
+        run: |
+          yarn install
+          yarn lint
+          yarn ci:all
+          yarn check:all
+
+      - name: Build the application
+        run: yarn build:all

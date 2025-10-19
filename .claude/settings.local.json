@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn build:chrome:all:*)",
+      "Bash(yarn install)",
+      "Bash(npm run build:chrome:all:dev:*)",
+      "Bash(yarn build:chrome:all:dev:*)",
+      "Bash(yarn list:*)",
+      "Bash(cd:*)",
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(find \"C:\\Users\\deanf\\OneDrive\\Desktop\\projects\\social_gathering-Harvest tool/src\" -type f ( -name \"*.css\" -o -name \"*.scss\" -o -name \"*.module.*\" ))"
+    ],
+    "deny": []
+  }
+}
