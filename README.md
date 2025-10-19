@@ -159,7 +159,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the Mozilla Public License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software. All rights reserved. No part of this project may be used, modified, or distributed without explicit written permission from the author.
 
 ## Privacy Policy
 
