@@ -958,8 +958,9 @@ export class TwitterComposeAutomation {
    */
   private static async performFinalValidationCheck(): Promise<{ isValid: boolean; errors: string[] }> {
     console.log('🔍 Performing final validation check...')
-    
+
     const errors: string[] = []
+    const warnings: string[] = []
 
     // Check if text content is present and valid
     const textArea = document.querySelector(this.SELECTORS.DRAFTJS_EDITOR)
@@ -970,8 +971,10 @@ export class TwitterComposeAutomation {
       if (textContent.length < 1) {
         errors.push('Text content is empty after typing.')
       }
+      // Don't treat character limit as a blocking error - Twitter may allow posting anyway
       if (textContent.length > 280) {
-        errors.push('Text content exceeds 280 characters.')
+        warnings.push('Text content exceeds 280 characters - Twitter may split into thread or reject')
+        console.log(`⚠️ Warning: Text is ${textContent.length} characters (limit is 280), but allowing post attempt`)
       }
     }
     
@@ -1008,7 +1011,12 @@ export class TwitterComposeAutomation {
     console.log(`   - Post button disabled: ${postButton?.disabled}`)
     console.log(`   - Post button aria-disabled: ${postButton?.getAttribute('aria-disabled')}`)
     console.log(`   - Post button has disabled class: ${postButton?.classList.contains('disabled')}`)
-    
+
+    if (warnings.length > 0) {
+      console.log('⚠️ Validation warnings (non-blocking):')
+      warnings.forEach(w => console.log(`   - ${w}`))
+    }
+
     return {
       isValid: errors.length === 0,
       errors: errors
@@ -1021,11 +1029,21 @@ export class TwitterComposeAutomation {
   static async postContent(data: PostData): Promise<void> {
     console.log('🚀 Starting Twitter compose automation...')
     console.log('📊 Data received:', data)
-    
+
     try {
       // Wait for compose container to load
       console.log('⏳ Waiting for compose container...')
       const composeContainer = await this.waitForElement(this.SELECTORS.COMPOSE_CONTAINER, 10000)
+
+      // IMPORTANT: Clear any existing content first to prevent duplication
+      console.log('🧹 Clearing any existing content from compose window...')
+      const draftJSEditor = document.querySelector(this.SELECTORS.DRAFTJS_EDITOR) as HTMLElement
+      if (draftJSEditor && draftJSEditor.textContent && draftJSEditor.textContent.trim().length > 0) {
+        console.log(`⚠️ Found existing content: "${draftJSEditor.textContent}" - clearing it now`)
+        await this.clearDraftJSContent(draftJSEditor)
+      } else {
+        console.log('✅ Compose window is clean, no content to clear')
+      }
       
       // Reconstruct File object from serialized data if present
       let mediaFile: File | undefined = undefined
@@ -1113,39 +1131,59 @@ export class TwitterComposeAutomation {
 /**
  * Message listener for content script
  */
-console.log('🔗 TwitterComposeAutomation content script loaded on:', window.location.href)
+// Prevent duplicate script execution
+if ((window as any).__twitterAutomationLoaded) {
+  console.log('⚠️ [Twitter] Script already loaded, skipping duplicate initialization')
+} else {
+  (window as any).__twitterAutomationLoaded = true
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('📨 Content script received message:', message)
-  console.log('📍 Current URL:', window.location.href)
-  console.log('📄 Page title:', document.title)
-  
-  if (message.type === 'POST_CONTENT') {
-    console.log('🎯 Processing POST_CONTENT message with data:', {
-      hasText: !!message.data?.text,
-      textLength: message.data?.text?.length || 0,
-      hasMediaFile: !!message.data?.mediaFile,
-      mediaType: message.data?.mediaFile?.type || 'none',
-      mediaSize: message.data?.mediaFile?.size || 0
-    })
-    
-    TwitterComposeAutomation.postContent(message.data)
-      .then(() => {
-        console.log('✅ Automation completed successfully')
-        sendResponse({ success: true })
+  console.log('🔗 TwitterComposeAutomation content script loaded on:', window.location.href)
+
+  // Track if we're currently processing to prevent duplicate runs
+  let isProcessing = false
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    console.log('📨 Content script received message:', message)
+    console.log('📍 Current URL:', window.location.href)
+    console.log('📄 Page title:', document.title)
+
+    if (message.type === 'POST_CONTENT') {
+      // Prevent duplicate processing
+      if (isProcessing) {
+        console.log('⚠️ [Twitter] Already processing a post, ignoring duplicate message')
+        sendResponse({ success: false, error: 'Already processing' })
+        return true
+      }
+
+      isProcessing = true
+      console.log('🎯 Processing POST_CONTENT message with data:', {
+        hasText: !!message.data?.text,
+        textLength: message.data?.text?.length || 0,
+        hasMediaFile: !!message.data?.mediaFile,
+        mediaType: message.data?.mediaFile?.type || 'none',
+        mediaSize: message.data?.mediaFile?.size || 0
       })
-      .catch((error) => {
-        console.error('❌ Error in automation:', error)
-        sendResponse({ success: false, error: error.message })
-      })
-    
-    // Return true to indicate we'll send a response asynchronously
-    return true
-  } else {
-    console.log('ℹ️ Ignoring message with type:', message.type)
-  }
-  
-  return false
-})
+
+      TwitterComposeAutomation.postContent(message.data)
+        .then(() => {
+          console.log('✅ Automation completed successfully')
+          isProcessing = false
+          sendResponse({ success: true })
+        })
+        .catch((error) => {
+          console.error('❌ Error in automation:', error)
+          isProcessing = false
+          sendResponse({ success: false, error: error.message })
+        })
+
+      // Return true to indicate we'll send a response asynchronously
+      return true
+    } else {
+      console.log('ℹ️ Ignoring message with type:', message.type)
+    }
+
+    return false
+  })
+}
 
 export default TwitterComposeAutomation 
